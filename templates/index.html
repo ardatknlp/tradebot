@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TradeBot</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">⚡ TradeBot <span class="sub">Binance USDⓈ-M Futures</span></div>
+  <div class="hstatus">
+    <span id="modeBadge" class="badge">DEMO</span>
+    <span id="runBadge" class="badge gray">DURDU</span>
+    <button id="btnStart" class="btn green">Başlat</button>
+    <button id="btnStop" class="btn red">Durdur</button>
+  </div>
+</header>
+
+<div id="liveWarn" class="warn" hidden>⚠️ GERÇEK PARA MODU aktif. Emirler gerçek hesabınıza gönderilir.</div>
+<div id="errBar" class="warn err" hidden></div>
+
+<main>
+  <section class="cards">
+    <div class="card"><div class="lbl">Cüzdan Bakiyesi</div><div class="val" id="cBalance">–</div><div class="hint" id="cStart"></div></div>
+    <div class="card"><div class="lbl">Equity (gerçekleşmemiş dahil)</div><div class="val" id="cEquity">–</div><div class="hint" id="cUnreal"></div></div>
+    <div class="card"><div class="lbl">Toplam Net Kâr/Zarar</div><div class="val" id="cNet">–</div><div class="hint" id="cGross"></div></div>
+    <div class="card"><div class="lbl">Ödenen Komisyon + Fonlama</div><div class="val" id="cFees">–</div><div class="hint" id="cFeeRate"></div></div>
+    <div class="card"><div class="lbl">İşlem / Kazanma Oranı</div><div class="val" id="cWin">–</div><div class="hint" id="cTrades"></div></div>
+    <div class="card"><div class="lbl">Günlük Gerçekleşen</div><div class="val" id="cDaily">–</div><div class="hint" id="cGuard"></div></div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h3>Equity Eğrisi</h3>
+      <canvas id="eqChart" height="180"></canvas>
+    </div>
+    <div class="panel">
+      <h3>Piyasa Görünümü <span class="hint" id="uniInfo"></span></h3>
+      <div class="tscroll">
+      <table id="tblMarket"><thead><tr><th>Sembol</th><th>Fiyat</th><th>Trend</th><th>HTF</th><th>ADX</th><th>RSI</th><th>ATR %</th><th>Fonlama</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="pendPanel" hidden>
+    <h3>Bekleyen Limit Emirler</h3>
+    <table id="tblPend"><thead><tr><th>Sembol</th><th>Yön</th><th>Miktar</th><th>Limit</th><th>Fiyat</th><th>Stop</th><th>Hedef</th><th>Son geçerlilik</th><th></th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="panel">
+    <h3>Açık Pozisyonlar</h3>
+    <table id="tblPos"><thead><tr><th>Sembol</th><th>Yön</th><th>Miktar</th><th>Giriş</th><th>Fiyat</th><th>Stop</th><th>Hedef</th><th>PnL</th><th>%</th><th>Kısmi</th><th>İz</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="posEmpty">Açık pozisyon yok.</div>
+  </section>
+
+  <section class="panel">
+    <h3>İşlem Geçmişi</h3>
+    <div class="tscroll">
+    <table id="tblTrades"><thead><tr><th>Kapanış</th><th>Sembol</th><th>Yön</th><th>Miktar</th><th>Giriş</th><th>Çıkış</th><th>Brüt</th><th>Komisyon</th><th>Fonlama</th><th>Net</th><th>Sebep</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="empty" id="trEmpty">Henüz işlem yok.</div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h3>Log</h3>
+      <pre id="logBox"></pre>
+    </div>
+    <div class="panel">
+      <h3>Backtest</h3>
+      <div class="row">
+        <label>Semboller <input id="btSymbols" placeholder="BTCUSDT,ETHUSDT"></label>
+        <label>Periyot <select id="btInterval"><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option></select></label>
+        <label>Gün <input id="btDays" type="number" value="90" min="7" max="720"></label>
+        <button id="btnBt" class="btn">Çalıştır</button>
+      </div>
+      <div id="btResult" class="btres"></div>
+      <canvas id="btChart" height="140" hidden></canvas>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Ayarlar</h3>
+    <form id="cfgForm" onsubmit="return false">
+      <div class="cols">
+        <fieldset>
+          <legend>Mod & API</legend>
+          <label>Mod
+            <select name="mode">
+              <option value="demo">Demo (kağıt para, API gerekmez)</option>
+              <option value="testnet">Binance Testnet (sahte bakiye)</option>
+              <option value="live">GERÇEK (gerçek para)</option>
+            </select></label>
+          <label>Binance API Key <input name="api_key" placeholder="(kayıtlıysa boş bırak)" autocomplete="off"></label>
+          <label>Binance API Secret <input name="api_secret" type="password" placeholder="(kayıtlıysa boş bırak)" autocomplete="off"></label>
+          <label>Testnet API Key <input name="testnet_api_key" autocomplete="off"></label>
+          <label>Testnet API Secret <input name="testnet_api_secret" type="password" autocomplete="off"></label>
+          <label class="chk"><input type="checkbox" name="live_trading_confirmed"> Gerçek para ile işlem yapılacağını anlıyor ve onaylıyorum</label>
+          <div class="hint" id="keyInfo"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Piyasa</legend>
+          <label class="chk"><input type="checkbox" name="universe.auto"> Evreni otomatik seç (hacme göre en likit coinler)</label>
+          <label>Otomatik evren: coin sayısı / min 24s hacim (USDT)
+            <span class="inl"><input name="universe.top_n" type="number" min="1" max="60"><input name="universe.min_quote_volume_usdt" type="number" step="1000000"></span></label>
+          <label>Manuel semboller (otomatik kapalıysa) <input name="symbols"></label>
+          <label>Mum periyodu <select name="interval"><option>5m</option><option>15m</option><option>30m</option><option>1h</option><option>4h</option></select></label>
+          <label>Kontrol aralığı (sn) <input name="poll_seconds" type="number" min="5"></label>
+          <label>Demo başlangıç bakiyesi <input name="demo.start_balance" type="number" step="1"></label>
+          <label>Demo kayma (bps) <input name="demo.slippage_bps" type="number" step="0.5"></label>
+          <label>Taker komisyon (oran) <input name="fees.taker" type="number" step="0.0001"></label>
+          <label>Maker komisyon (oran) <input name="fees.maker" type="number" step="0.0001"></label>
+          <label class="chk"><input type="checkbox" name="fees.bnb_discount"> BNB ile komisyon (%10 indirim)</label>
+        </fieldset>
+        <fieldset>
+          <legend>Risk</legend>
+          <label>Kaldıraç <input name="risk.leverage" type="number" min="1" max="20"></label>
+          <label>İşlem başı risk (% equity) <input name="risk.risk_per_trade_pct" type="number" step="0.1"></label>
+          <label>Pozisyon başı maks. marjin (% equity) <input name="risk.max_position_pct" type="number" step="1"></label>
+          <label>Maks. açık pozisyon / aynı yönde maks.
+            <span class="inl"><input name="risk.max_open_positions" type="number" min="1"><input name="risk.max_positions_per_side" type="number" min="1"></span></label>
+          <label>Toplam marjin limiti (% equity) <input name="risk.max_total_margin_pct" type="number" step="5"></label>
+          <label>Günlük maks. zarar (%) <input name="risk.max_daily_loss_pct" type="number" step="0.5"></label>
+          <label>Ardışık kayıp limiti <input name="risk.max_consecutive_losses" type="number" min="1"></label>
+          <label>Soğuma süresi (dk) <input name="risk.cooldown_minutes" type="number" min="0"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Strateji</legend>
+          <label>Giriş tetikleyicisi
+            <select name="strategy.entry_mode"><option value="any">Hepsi (kesişim + geri çekilme + kırılım)</option><option value="cross">EMA kesişim</option><option value="pullback">Geri çekilme</option><option value="breakout">Kırılım</option></select></label>
+          <label>Giriş emri
+            <select name="strategy.entry_order"><option value="limit">Limit (maker, düşük komisyon)</option><option value="market">Market (taker, garanti dolum)</option></select></label>
+          <label>Limit emir süresi (mum) <input name="strategy.limit_timeout_bars" type="number" min="1"></label>
+          <label class="chk"><input type="checkbox" name="strategy.htf_filter"> Üst zaman dilimi trend onayı</label>
+          <label class="chk"><input type="checkbox" name="strategy.volume_filter"> Hacim onayı (× 20 mum ort.)</label>
+          <label>Hacim çarpanı <input name="strategy.volume_mult" type="number" step="0.1"></label>
+          <label>ATR % bandı (min / max)
+            <span class="inl"><input name="strategy.atr_pct_min" type="number" step="0.05"><input name="strategy.atr_pct_max" type="number" step="0.5"></span></label>
+          <label class="chk"><input type="checkbox" name="strategy.partial_tp"> Kısmi kâr alma</label>
+          <label>Kısmi: R seviyesi / oran
+            <span class="inl"><input name="strategy.partial_r" type="number" step="0.1"><input name="strategy.partial_fraction" type="number" step="0.1" min="0.1" max="0.9"></span></label>
+          <label>Zaman stopu (mum, 0=kapalı) <input name="strategy.max_bars_in_trade" type="number" min="0"></label>
+          <label>EMA hızlı / yavaş / trend
+            <span class="inl"><input name="strategy.ema_fast" type="number"><input name="strategy.ema_slow" type="number"><input name="strategy.ema_trend" type="number"></span></label>
+          <label>ADX min <input name="strategy.adx_min" type="number" step="1"></label>
+          <label>RSI üst (long) / alt (short)
+            <span class="inl"><input name="strategy.rsi_max_long" type="number"><input name="strategy.rsi_min_short" type="number"></span></label>
+          <label>Stop (x ATR) <input name="strategy.sl_atr" type="number" step="0.1"></label>
+          <label>Hedef (x ATR) <input name="strategy.tp_atr" type="number" step="0.1"></label>
+          <label>İz süren stop: aktivasyon / mesafe (x ATR)
+            <span class="inl"><input name="strategy.trail_activate_atr" type="number" step="0.1"><input name="strategy.trail_atr" type="number" step="0.1"></span></label>
+          <label>Hedef ≥ komisyon × <input name="strategy.min_tp_fee_multiple" type="number" step="0.5"></label>
+          <label class="chk"><input type="checkbox" name="strategy.allow_long"> Long izinli</label>
+          <label class="chk"><input type="checkbox" name="strategy.allow_short"> Short izinli</label>
+        </fieldset>
+      </div>
+      <div class="row">
+        <button id="btnSave" class="btn">Kaydet</button>
+        <button id="btnReset" class="btn red">Demo bakiyeyi sıfırla</button>
+        <span id="saveMsg" class="hint"></span>
+      </div>
+    </form>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>

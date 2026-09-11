@@ -1,0 +1,61 @@
+{
+  "mode": "demo",
+  "api_key": "",
+  "api_secret": "",
+  "testnet_api_key": "",
+  "testnet_api_secret": "",
+  "live_trading_confirmed": false,
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT"
+  ],
+  "interval": "1h",
+  "demo": {
+    "start_balance": 1000.0,
+    "slippage_bps": 2.0,
+    "apply_funding": true
+  },
+  "fees": {
+    "maker": 0.0002,
+    "taker": 0.0005,
+    "bnb_discount": false
+  },
+  "strategy": {
+    "entry_mode": "breakout",
+    "adx_min": 25,
+    "sl_atr": 2.0,
+    "tp_atr": 4.0,
+    "trail_activate_atr": 2.0,
+    "trail_atr": 3.0,
+    "min_tp_fee_multiple": 4,
+    "htf_filter": true,
+    "entry_order": "limit",
+    "partial_tp": true,
+    "volume_filter": true
+  },
+  "risk": {
+    "leverage": 3,
+    "risk_per_trade_pct": 1.0,
+    "max_position_pct": 30.0,
+    "max_open_positions": 6,
+    "max_daily_loss_pct": 3.0,
+    "max_consecutive_losses": 3,
+    "cooldown_minutes": 120,
+    "max_positions_per_side": 3,
+    "max_total_margin_pct": 60
+  },
+  "universe": {
+    "auto": true,
+    "top_n": 20,
+    "min_quote_volume_usdt": 100000000,
+    "min_listing_days": 90,
+    "max_change_pct": 30
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "password": ""
+  }
+}
