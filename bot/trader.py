@@ -159,6 +159,7 @@ class Trader:
             self.thread_gen += 1
             self.thread = threading.Thread(target=self._loop, args=(self.thread_gen,), daemon=True)
             self.thread.start()
+            self.storage.set("autostart", True)
             self.log(f"Bot BAŞLATILDI ({mode.upper()}, {self.cfg['interval']}, giriş: {self.cfg['strategy'].get('entry_order', 'limit')})")
             return True, "başlatıldı"
 
@@ -168,6 +169,7 @@ class Trader:
                 return False, "çalışmıyor"
             self.running = False
             self.thread_gen += 1
+            self.storage.set("autostart", False)
         self.log("Bot durduruldu (açık pozisyonlar ve borsadaki koruma emirleri korunuyor).")
         return True, "durduruldu"
 

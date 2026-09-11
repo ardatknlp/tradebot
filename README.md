@@ -122,7 +122,30 @@ templates/, static/  arayüz
 data/tradebot.db     işlem geçmişi ve bot durumu (SQLite)
 ```
 
-## Sunucuda çalıştırma
+## Coolify / Docker ile çalıştırma
+
+Depoda `Dockerfile` ve `docker-compose.yml` var. Coolify'da:
+
+1. **New Resource → Public/Private Repository**, depo `ardatknlp/tradebot`, dal `main`, Build Pack **Dockerfile**.
+2. **Port:** 8080 (Dockerfile `PORT=8080` ile başlar; Coolify'ın verdiği `PORT` değişkeni de otomatik kullanılır).
+3. **Persistent Storage:** konteyner yolu `/app/data` (SQLite işlem geçmişi, mum önbelleği ve arayüzden kaydedilen `config.json` burada durur; volume olmazsa her deploy'da sıfırlanır).
+4. **Environment Variables** (anahtarları buraya girin, dosyaya değil; ortam değişkeni dosyadaki değeri ezer ve dosyaya asla yazılmaz):
+
+| Değişken | Açıklama |
+|---|---|
+| `WEB_PASSWORD` | **Zorunlu.** Arayüz parolası (HTTP Basic Auth, kullanıcı adı boş). Boşsa konteyner başlamaz. |
+| `TRADEBOT_MODE` | `demo`, `testnet` veya `live` |
+| `BINANCE_TESTNET_API_KEY` / `BINANCE_TESTNET_API_SECRET` | testnet için |
+| `BINANCE_API_KEY` / `BINANCE_API_SECRET` | gerçek hesap için |
+| `LIVE_TRADING_CONFIRMED` | gerçek modda `true` olmalı |
+| `TRADEBOT_AUTOSTART` | `true` ise konteyner açılınca bot hemen başlar. Ayrıca bot çalışırken konteyner yeniden başlarsa otomatik devam eder. |
+
+5. Domain verip Coolify'ın HTTPS'ini açın; parola HTTP üzerinden düz metin gittiği için HTTPS şart.
+6. Sağlık kontrolü: `GET /api/health` (parola istemez). Loglar Coolify'ın log ekranında (stdout).
+
+Yerelde deneme: `WEB_PASSWORD=gizli docker compose up --build`
+
+## Sunucuda çalıştırma (Docker'sız)
 
 ```bash
 git clone https://github.com/ardatknlp/tradebot.git && cd tradebot

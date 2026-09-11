@@ -8,9 +8,15 @@ from bot.trader import Trader
 from bot.web import create_app
 from bot import config as cfgmod
 
+import os
+
 if __name__ == "__main__":
     trader = Trader(Storage())
     app = create_app(trader)
+    # Konteyner yeniden başladıysa bot kaldığı yerden devam etsin (önceden çalışıyorsa veya TRADEBOT_AUTOSTART=true)
+    if os.environ.get("TRADEBOT_AUTOSTART", "").lower() in ("1", "true", "yes") or trader.storage.get("autostart"):
+        ok, msg = trader.start()
+        print("otomatik başlatma:", msg, flush=True)
     web = trader.cfg["web"]
     if web["host"] not in ("127.0.0.1", "localhost") and not web.get("password"):
         raise SystemExit("HATA: web.host dış erişime açık ama web.password boş. config.json içinde web.password ayarlayın.")

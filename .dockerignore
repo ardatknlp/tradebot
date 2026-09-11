@@ -1,0 +1,7 @@
+data/
+config.json
+.claude/
+.venv/
+__pycache__/
+*.pyc
+.git/

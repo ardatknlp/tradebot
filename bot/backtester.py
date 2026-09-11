@@ -7,14 +7,14 @@ import time
 from datetime import datetime, timezone
 
 from .binance_client import INTERVAL_MS
-from .config import ROOT, round_trip_fee
+from .config import DATA_DIR, round_trip_fee
 from .models import Position
 from .risk import position_size
 from .strategy import (compute_indicators, signal_at, update_trailing, min_bars, htf_interval,
                        htf_bias_series, breakeven_price, partial_tp_price)
 
 FUNDING_MS = 8 * 3600 * 1000
-CACHE_DIR = os.path.join(ROOT, "data", "cache")
+CACHE_DIR = os.path.join(DATA_DIR, "cache")
 
 
 def load_candles(client, symbol, interval, start_ms, end_ms):

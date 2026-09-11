@@ -4,10 +4,10 @@ import os
 import sqlite3
 import threading
 
-from .config import ROOT
+from .config import DATA_DIR
 from .models import Trade
 
-DB_PATH = os.path.join(ROOT, "data", "tradebot.db")
+DB_PATH = os.path.join(DATA_DIR, "tradebot.db")
 
 
 class Storage:

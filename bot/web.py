@@ -20,12 +20,16 @@ def create_app(trader):
     def _auth():
         """web.password ayarlıysa tüm istekler HTTP Basic Auth ister (sunucuda zorunlu)."""
         pw = (trader.cfg.get("web") or {}).get("password") or ""
-        if not pw:
+        if not pw or request.path == "/api/health":
             return None
         a = request.authorization
         if a and a.password and hmac.compare_digest(a.password, pw):
             return None
         return Response("Giriş gerekli", 401, {"WWW-Authenticate": 'Basic realm="tradebot"'})
+
+    @app.get("/api/health")
+    def health():
+        return jsonify({"ok": True, "running": trader.running, "mode": trader.mode})
 
     @app.route("/")
     def index():

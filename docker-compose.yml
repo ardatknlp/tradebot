@@ -1,0 +1,19 @@
+services:
+  tradebot:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - tradebot-data:/app/data
+    environment:
+      - TRADEBOT_MODE=${TRADEBOT_MODE:-demo}
+      - WEB_PASSWORD=${WEB_PASSWORD}
+      - BINANCE_API_KEY=${BINANCE_API_KEY:-}
+      - BINANCE_API_SECRET=${BINANCE_API_SECRET:-}
+      - BINANCE_TESTNET_API_KEY=${BINANCE_TESTNET_API_KEY:-}
+      - BINANCE_TESTNET_API_SECRET=${BINANCE_TESTNET_API_SECRET:-}
+      - LIVE_TRADING_CONFIRMED=${LIVE_TRADING_CONFIRMED:-false}
+      - TRADEBOT_AUTOSTART=${TRADEBOT_AUTOSTART:-false}
+volumes:
+  tradebot-data:

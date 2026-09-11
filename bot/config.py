@@ -5,8 +5,44 @@ import os
 import threading
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_PATH = os.path.join(ROOT, "config.json")
+DATA_DIR = os.environ.get("TRADEBOT_DATA_DIR") or os.path.join(ROOT, "data")
+CONFIG_PATH = os.environ.get("TRADEBOT_CONFIG") or os.path.join(ROOT, "config.json")
 _lock = threading.Lock()
+
+# Ortam değişkeni -> ayar yolu. Docker/Coolify'da anahtarlar dosyaya değil buraya girilir.
+ENV_MAP = {
+    "TRADEBOT_MODE": ("mode",), "BINANCE_API_KEY": ("api_key",), "BINANCE_API_SECRET": ("api_secret",),
+    "BINANCE_TESTNET_API_KEY": ("testnet_api_key",), "BINANCE_TESTNET_API_SECRET": ("testnet_api_secret",),
+    "LIVE_TRADING_CONFIRMED": ("live_trading_confirmed",), "WEB_PASSWORD": ("web", "password"),
+    "WEB_HOST": ("web", "host"), "PORT": ("web", "port"), "WEB_PORT": ("web", "port"),
+}
+
+
+def _set_path(d, path, value):
+    for k in path[:-1]:
+        d = d.setdefault(k, {})
+    d[path[-1]] = value
+
+
+def _env_overrides():
+    out = {}
+    for env, path in ENV_MAP.items():
+        v = os.environ.get(env)
+        if v is None or v == "":
+            continue
+        if path[-1] == "live_trading_confirmed":
+            v = v.strip().lower() in ("1", "true", "yes", "evet")
+        elif path[-1] == "port":
+            try:
+                v = int(v)
+            except ValueError:
+                continue
+        _set_path(out, path, v)
+    return out
+
+
+def env_overridden_paths():
+    return [path for env, path in ENV_MAP.items() if os.environ.get(env)]
 
 DEFAULTS = {
     # demo  : bot içi kağıt-para simülasyonu (API anahtarı gerekmez, canlı fiyat kullanır)
@@ -114,11 +150,19 @@ def load():
                     data = json.load(f)
                 except json.JSONDecodeError:
                     data = {}
-        return _merge(DEFAULTS, data)
+        return _merge(_merge(DEFAULTS, data), _env_overrides())
 
 
 def save(cfg):
+    """Ortam değişkeninden gelen değerler (gizli anahtarlar) dosyaya yazılmaz."""
+    cfg = copy.deepcopy(cfg)
+    for path in env_overridden_paths():
+        d = cfg
+        for k in path[:-1]:
+            d = d.get(k, {})
+        d.pop(path[-1], None)
     with _lock:
+        os.makedirs(os.path.dirname(CONFIG_PATH) or ".", exist_ok=True)
         tmp = CONFIG_PATH + ".tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2, ensure_ascii=False)
