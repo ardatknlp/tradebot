@@ -1,9 +1,10 @@
 :root{--bg:#0f1420;--panel:#171e2e;--line:#26304a;--txt:#e6e9f0;--mut:#8b95ab;--green:#2ecc71;--red:#ff5c5c;--yel:#f5c542;--blue:#4c8dff}
-*{box-sizing:border-box}
+*{box-sizing:border-box;min-width:0}
+html,body{max-width:100%;overflow-x:hidden}
 body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.brand{font-weight:700;font-size:18px}.brand .sub{font-weight:400;color:var(--mut);font-size:12px;margin-left:8px}
-.hstatus{display:flex;gap:8px;align-items:center}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.brand{font-weight:700;font-size:18px;white-space:nowrap}.brand .sub{font-weight:400;color:var(--mut);font-size:12px;margin-left:8px}
+.hstatus{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .badge{padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;background:var(--blue);color:#fff}
 .badge.gray{background:#3a4460}.badge.green{background:var(--green);color:#06281a}.badge.red{background:var(--red)}.badge.yel{background:var(--yel);color:#332a00}
 .btn{background:#2a3450;color:var(--txt);border:1px solid var(--line);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
@@ -14,7 +15,7 @@ main{padding:16px 20px;display:flex;flex-direction:column;gap:16px;max-width:150
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
 .lbl{color:var(--mut);font-size:12px}.val{font-size:22px;font-weight:700;margin-top:4px}.hint{color:var(--mut);font-size:12px;margin-top:4px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0;overflow:hidden}
 .panel h3{margin:0 0 10px;font-size:14px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
@@ -22,7 +23,8 @@ table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 8px;t
 th{color:var(--mut);font-weight:500;font-size:12px}th:first-child,td:first-child{text-align:left}
 .pos{color:var(--green)}.neg{color:var(--red)}
 .empty{color:var(--mut);font-size:13px;padding:6px 0}
-.tscroll{max-height:320px;overflow:auto}
+.tscroll{max-height:320px;overflow:auto;-webkit-overflow-scrolling:touch}
+.tscroll table{min-width:max-content;width:100%}
 pre{background:#0b0f18;border:1px solid var(--line);border-radius:6px;padding:10px;height:280px;overflow:auto;font-size:12px;margin:0;white-space:pre-wrap}
 canvas{width:100%;display:block}
 .row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:8px}
@@ -34,3 +36,22 @@ input,select{background:#0b0f18;color:var(--txt);border:1px solid var(--line);bo
 .inl{display:flex;gap:6px}
 .btres{font-size:13px;margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 .btres b{color:var(--txt)}
+
+/* ---- mobil ---- */
+@media(max-width:640px){
+  header{padding:10px 12px}
+  .brand{font-size:16px}.brand .sub{display:none}
+  .hstatus{width:100%;justify-content:space-between}
+  .btn{padding:8px 12px}
+  main{padding:10px 10px;gap:10px}
+  .cards{grid-template-columns:1fr 1fr;gap:8px}
+  .card{padding:10px}.val{font-size:17px}.lbl,.hint{font-size:11px}
+  .panel{padding:10px}.panel h3{font-size:12px}
+  table{font-size:12px}th,td{padding:5px 6px}
+  pre{height:200px;font-size:11px}
+  .cols{grid-template-columns:1fr}
+  input,select{font-size:16px;padding:8px}  /* iOS otomatik yakınlaştırmayı engeller */
+  .row{gap:8px}.row label{flex:1 1 45%}
+  .btres{grid-template-columns:1fr}
+  canvas#eqChart{height:150px}
+}
