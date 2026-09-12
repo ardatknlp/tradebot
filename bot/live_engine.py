@@ -25,7 +25,7 @@ class LiveExchange:
     # ---- durum (önbellekli: hesap uçlarına tick başına en fazla 1 kez gidilir) ----
     _acct_cache = None
     _acct_ts = 0.0
-    ACCT_TTL = 12.0
+    ACCT_TTL = 30.0          # bakiye/pozisyon önbelleği (sn); testnet sayaç gürültüsüne karşı seyrek
 
     def refresh_account(self, force=False):
         if not force and self._acct_cache and time.time() - self._acct_ts < self.ACCT_TTL:
@@ -287,13 +287,20 @@ class LiveExchange:
     def apply_funding(self, *a, **k):
         return 0.0
 
+    _last_sync = 0.0
+    SYNC_EVERY = 20.0        # borsa ile pozisyon eşitleme aralığı (sn)
+
     def sync(self):
         """Borsadaki gerçek pozisyonlarla eşitle. Borsada kapanmış (SL/TP) pozisyonları Trade olarak döner."""
         closed = []
+        if time.time() - self._last_sync < self.SYNC_EVERY:
+            return closed
         try:
             live = {p["symbol"]: p for p in self.refresh_account(force=True)["risk"]}
+            self._last_sync = time.time()
         except BinanceError as e:
-            self.log(f"pozisyon senkronu başarısız: {e}")
+            if "-1003" not in str(e):
+                self.log(f"pozisyon senkronu başarısız: {e}")
             return closed
         for symbol in list(self.positions.keys()):
             pos = self.positions[symbol]
@@ -330,7 +337,7 @@ class LiveExchange:
                 pos.qty = lp["qty"]
                 pos.entry = lp["entry"] or pos.entry
                 self._sync_n = getattr(self, "_sync_n", 0) + 1
-                if self._sync_n % 4 == 1:  # ~her dakikada bir koruma emirlerini doğrula
+                if self._sync_n % 6 == 1:  # ~2 dakikada bir koruma emirlerini doğrula
                     try:
                         self.ensure_protection(pos)
                     except Exception as e:  # noqa

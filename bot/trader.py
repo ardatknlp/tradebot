@@ -45,6 +45,8 @@ class Trader:
         self.universe_refreshed = 0.0
         self.equity_history = deque(maxlen=1500)
         self.last_error = None
+        self.rate_limit_hits = 0
+        self.rate_limit_logged = 0.0
         self.started_at = None
         self.public = BinanceFutures()
         self.exchange = None
@@ -216,14 +218,21 @@ class Trader:
                     self._tick()
                 self.last_error = None
             except Exception as e:  # noqa
-                self.last_error = str(e)
-                self.log(f"HATA: {e}")
-                if "-1003" not in str(e):
+                if "-1003" in str(e):
+                    # Hız sınırı: hata değil, geçici durum. 5 dakikada en fazla bir satır yaz.
+                    self.rate_limit_hits += 1
+                    if time.time() - self.rate_limit_logged > 300:
+                        self.rate_limit_logged = time.time()
+                        self.log(f"Hız sınırı (429/-1003), kısa bekleme; son 5 dk'da {self.rate_limit_hits} kez "
+                                 f"(ağırlık: veri {self.public.used_weight}, hesap {self.client.used_weight})")
+                        self.rate_limit_hits = 0
+                else:
+                    self.last_error = str(e)
+                    self.log(f"HATA: {e}")
                     traceback.print_exc()
             ban = max(self.client.banned_until, self.public.banned_until) - time.time()
             if ban > 0:
-                wait_s = min(60.0, max(3.0, ban + 1))
-                self.log(f"İstek limiti: {wait_s:.0f} sn bekleniyor (ağırlık: veri {self.public.used_weight}, hesap {self.client.used_weight})")
+                wait_s = min(30.0, max(2.0, ban + 0.5))
                 for _ in range(int(wait_s * 2)):
                     if not (self.running and gen == self.thread_gen):
                         break

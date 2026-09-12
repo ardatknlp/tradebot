@@ -184,6 +184,14 @@ sudo systemctl daemon-reload && sudo systemctl enable --now tradebot && journalc
   borsada olduğu için yeniden başlatma sırasında pozisyonlar korumasız kalmaz.
 - Binance API anahtarına IP kısıtlaması koyun ve sunucunun IP'sini ekleyin.
 
+## Testnet hız sınırı uyarıları
+
+Testnet'te ara sıra `-1003 / HTTP 429` görülmesi normaldir. Ölçümler, testnet'in hesap bazlı ağırlık sayacının
+sunucu düğümleri arasında tutarsız olduğunu gösteriyor (aynı saniyede 54 ve 6086 gibi değerler dönebiliyor);
+bu botun istek sayısından bağımsızdır. Bot bu durumda birkaç saniye bekleyip devam eder, pozisyonlar borsadaki
+stop/hedef emirleriyle korunmaya devam eder. Gerçek hesapta sınır IP başına dakikada 2400 ağırlıktır ve botun
+tüketimi ~100'dür.
+
 ## Notlar
 
 - Hesap Binance'te **One-way (tek yön)** pozisyon modunda olmalı; hedge modunda bot başlamaz.
